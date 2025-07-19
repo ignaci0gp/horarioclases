@@ -56,5 +56,6 @@ st.dataframe(horario_df, use_container_width=True, height=360)
 
 st.markdown("### 📋 Seleccionados:")
 for i, curso in enumerate(st.session_state.seleccionados, 1):
-    st.markdown(f"**{i}. {curso['nombre']} - Sección {curso['seccion']}** — {curso['profesor']}  
-_Paquete {curso['paquete']}_")
+    st.markdown(f"""**{i}. {curso['nombre']} - Sección {curso['seccion']}** — {curso['profesor']}
+*{curso['paquete']}*""")
+
