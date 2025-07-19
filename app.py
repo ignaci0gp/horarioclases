@@ -92,8 +92,10 @@ st.dataframe(horario, use_container_width=True, height=400)
 
 st.markdown("### 📋 Seleccionados:")
 for i, curso in enumerate(st.session_state.seleccionados, 1):
-    st.markdown(f"**{i}. {curso['nombre']} - Sección {curso['seccion']}** — {curso['profesor']}  
-*{curso['paquete']}*")
+    st.markdown(
+    f"""**{i}. {curso['nombre']} - Sección {curso['seccion']}** — {curso['profesor']}  
+*{curso['paquete']}*"""
+)
     if st.button(f"❌ Eliminar {curso['nombre']} Sección {curso['seccion']}", key=f"eliminar_{i}"):
         eliminar_curso(i-1)
         st.rerun()
