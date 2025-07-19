@@ -4,98 +4,57 @@ import pandas as pd
 
 st.set_page_config(layout="wide")
 
-# Datos de ejemplo (puedes reemplazar esto con carga desde archivo)
+# Datos de ejemplo (reemplazar con tus datos reales)
 cursos = [
-    {
-        "codigo": "ICO09412",
-        "nombre": "Finanzas II",
-        "seccion": "1",
-        "profesor": "YAÑEZ GUILLERMO JOSE",
-        "catedra": "MA JU 11:30 - 12:50",
-        "ayudantia": "VI 08:30 - 09:50",
-        "paquete": "Paquete A"
-    },
-    {
-        "codigo": "ICO09412",
-        "nombre": "Finanzas II",
-        "seccion": "2",
-        "profesor": "RANTUL FRANCISCO OSIEL",
-        "catedra": "LU MI 08:30 - 09:50",
-        "ayudantia": "",
-        "paquete": "Paquete A"
-    },
-    {
-        "codigo": "ICO09320",
-        "nombre": "Recursos Humanos",
-        "seccion": "1",
-        "profesor": "MUÑOZ JUAN ANDRÉS",
-        "catedra": "VI 11:30 - 12:50",
-        "ayudantia": "",
-        "paquete": "Paquete B"
-    },
+    {"codigo": "FIN200", "nombre": "Finanzas II", "seccion": "1", "profesor": "YAÑEZ GUILLERMO JOSE", "paquete": "Paquete A", "catedra": ["LU 17:25 - 18:45", "JU 17:25 - 18:45"], "ayudantia": ["MA 11:30 - 12:50"]},
+    {"codigo": "FIN200", "nombre": "Finanzas II", "seccion": "2", "profesor": "YAÑEZ GUILLERMO JOSE", "paquete": "Paquete B", "catedra": ["LU 10:00 - 11:20", "VI 10:00 - 11:20"], "ayudantia": ["MI 11:30 - 12:50"]},
+    {"codigo": "RRHH100", "nombre": "Recursos Humanos", "seccion": "1", "profesor": "GOMEZ MARIA", "paquete": "Paquete C", "catedra": ["LU 08:30 - 09:50"], "ayudantia": []}
 ]
 
-tramos = [
-    "08:30 - 09:50",
-    "10:00 - 11:20",
-    "11:30 - 12:50",
-    "13:00 - 14:20",
-    "14:30 - 15:50",
-    "16:00 - 17:20",
-    "17:25 - 18:45"
-]
-dias = ["LU", "MA", "MI", "JU", "VI"]
+dias_semana = ["LU", "MA", "MI", "JU", "VI"]
+bloques = ["08:30 - 09:50", "10:00 - 11:20", "11:30 - 12:50", "13:00 - 14:20", "14:30 - 15:50", "16:00 - 17:20", "17:25 - 18:45"]
 
-# Inicializar sesión
+def extraer_bloques(lista):
+    resultado = []
+    for entrada in lista:
+        partes = entrada.split()
+        if len(partes) >= 3:
+            dia = partes[0]
+            tramo = " ".join(partes[1:])
+            resultado.append((dia, tramo))
+    return resultado
+
 if "seleccionados" not in st.session_state:
     st.session_state.seleccionados = []
 
-def extraer_bloques(texto):
-    bloques = []
-    if not texto:
-        return bloques
-    partes = texto.split()
-    i = 0
-    while i < len(partes):
-        if partes[i] in dias:
-            try:
-                if partes[i+1] in dias:
-                    horas = partes[i+2]
-                    bloques.append((partes[i], horas))
-                    bloques.append((partes[i+1], horas))
-                    i += 3
-                else:
-                    horas = partes[i+1]
-                    bloques.append((partes[i], horas))
-                    i += 2
-            except IndexError:
-                break
-        else:
-            i += 1
-    return bloques
-
-def agregar_al_horario(curso):
-    bloques = extraer_bloques(curso["catedra"]) + extraer_bloques(curso["ayudantia"])
-    for dia, tramo in bloques:
-        horario.at[tramo, dia] = curso["nombre"]
-    st.session_state.seleccionados.append(curso)
-
-# Construir horario base
-horario = pd.DataFrame("", index=tramos, columns=dias)
-
-st.markdown("### 📚 Cursos disponibles:")
-
+st.markdown("## 🧮 Cursos disponibles:")
 cols = st.columns(3)
 for i, curso in enumerate(cursos):
     with cols[i % 3]:
-        if st.button(f"**{curso['nombre']}** Sección {curso['seccion']}", key=f"{curso['codigo']}-{curso['seccion']}"):
-            agregar_al_horario(curso)
-            st.success(f"{curso['nombre']} - Sección {curso['seccion']} agregado al horario.")
+        tarjeta = f"**{curso['nombre']}** Sección {curso['seccion']}"
+        if st.button(tarjeta, key=f"{curso['codigo']}-{curso['seccion']}"):
+            if curso not in st.session_state.seleccionados:
+                st.session_state.seleccionados.append(curso)
+                st.success(f"{curso['nombre']} - Sección {curso['seccion']} agregado al horario.")
 
-st.markdown("### 🗓️ Mi horario actual")
-st.dataframe(horario, height=400)
+st.markdown("## 🗓️ Mi horario actual")
+horario_df = pd.DataFrame("", index=bloques, columns=dias_semana)
+
+for curso in st.session_state.seleccionados:
+    bloques_catedra = extraer_bloques(curso["catedra"])
+    bloques_ayudantia = extraer_bloques(curso["ayudantia"])
+
+    for dia, tramo in bloques_catedra:
+        if dia in dias_semana and tramo in horario_df.index:
+            horario_df.loc[tramo, dia] = curso["nombre"]
+
+    for dia, tramo in bloques_ayudantia:
+        if dia in dias_semana and tramo in horario_df.index:
+            horario_df.loc[tramo, dia] = f"Ayudantía {curso['nombre']}"
+
+st.dataframe(horario_df, use_container_width=True, height=360)
 
 st.markdown("### 📋 Seleccionados:")
 for i, curso in enumerate(st.session_state.seleccionados, 1):
-    st.markdown(f"""**{i}. {curso['nombre']} - Sección {curso['seccion']}** — {curso['profesor']}  
-*{curso['paquete']}*""")
+    st.markdown(f"**{i}. {curso['nombre']} - Sección {curso['seccion']}** — {curso['profesor']}  
+_Paquete {curso['paquete']}_")
