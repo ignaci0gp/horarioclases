@@ -70,8 +70,10 @@ cols = st.columns(3)
 
 for i, curso in enumerate(cursos):
     col = cols[i % 3]
-    tarjeta = f"**{curso['nombre']}**  
-Sección {curso['seccion']}"
+   tarjeta = f\"\"\"
+**{curso['nombre']}**
+Sección {curso['seccion']}
+\"\"\"
     key = f"btn_{i}"
     if col.button(tarjeta, key=key):
         nombre = f"{curso['nombre']} - Sección {curso['seccion']}"
