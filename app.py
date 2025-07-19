@@ -1,7 +1,8 @@
 
 import streamlit as st
+from datetime import datetime, timedelta
 
-# Diccionario de bloques
+# Diccionario de bloques estándar
 DIA_BLOQUES = {
     "08:30 - 09:50": 0,
     "10:00 - 11:20": 1,
@@ -13,16 +14,18 @@ DIA_BLOQUES = {
     "18:50 - 20:10": 7
 }
 
-# Días de la semana
+# Días válidos
 DIAS = ["LU", "MA", "MI", "JU", "VI", "SA"]
 
 # Función para dividir bloques largos
-from datetime import datetime, timedelta
 def dividir_bloque_largo(inicio, fin):
     bloques = []
     fmt = "%H:%M"
-    inicio_dt = datetime.strptime(inicio, fmt)
-    fin_dt = datetime.strptime(fin, fmt)
+    try:
+        inicio_dt = datetime.strptime(inicio, fmt)
+        fin_dt = datetime.strptime(fin, fmt)
+    except ValueError:
+        return []
     actual = inicio_dt
     while actual < fin_dt:
         siguiente = actual + timedelta(minutes=80)
@@ -33,27 +36,30 @@ def dividir_bloque_largo(inicio, fin):
         actual = siguiente + timedelta(minutes=10)
     return bloques
 
-# Función corregida para extraer bloques desde el string de horario
+# Función para extraer bloques desde string de horario
 def extraer_bloques(horario_str):
     bloques = []
-    partes = horario_str.split()
+    partes = horario_str.strip().split()
     if len(partes) >= 3:
-        dias = partes[:-2]
-        tramo = " ".join(partes[-2:])
-        hora_inicio, _, hora_fin = tramo.partition(" - ")
-        rangos = dividir_bloque_largo(hora_inicio, hora_fin)
-        for dia in dias:
-            for r in rangos:
-                if r in DIA_BLOQUES:
-                    bloques.append((dia, DIA_BLOQUES[r]))
+        dias = [p for p in partes if p in DIAS]
+        tramo = " ".join([p for p in partes if ":" in p or "-" in p])
+        try:
+            hora_inicio, hora_fin = [x.strip() for x in tramo.split("-")]
+            rangos = dividir_bloque_largo(hora_inicio, hora_fin)
+            for dia in dias:
+                for r in rangos:
+                    if r in DIA_BLOQUES:
+                        bloques.append((dia, DIA_BLOQUES[r]))
+        except ValueError:
+            pass
     return bloques
 
-# Simulación de curso con horario largo
-st.title("Test División de Bloques Largos")
+# App de prueba
+st.title("🔎 Verificación de bloques correctos")
 curso_test = {
     "nombre": "Taller Emprendimiento",
     "catedra": "MA 13:00 - 15:50"
 }
-
+st.write("Entrada original:", curso_test["catedra"])
 bloques = extraer_bloques(curso_test["catedra"])
 st.write("Bloques extraídos:", bloques)
