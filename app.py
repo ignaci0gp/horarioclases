@@ -65,9 +65,6 @@ cursos = [
     {"codigo": "ICO09413", "nombre": "Recursos Humanos", "seccion": "1", "catedra": "LU MI 13:00 - 14:20", "ayudantia": "VI 13:00 - 14:20", "profesor": "TOLEDO MIGUEL APOLONIO", "paquete": "ICO09413_V01"},
     {"codigo": "ICO09414", "nombre": "Taller Emprendimiento", "seccion": "1", "catedra": "MA 13:00 - 15:50", "ayudantia": "", "profesor": "FERNANDEZ ANDRES JOSE", "paquete": "ICO09414_V01"},
     {"codigo": "ICO09414", "nombre": "Taller Emprendimiento", "seccion": "2", "catedra": "MA 13:00 - 15:50", "ayudantia": "", "profesor": "MUENA PAULINA", "paquete": "ICO09414_V02"},
-    {"nombre": "Finanzas II", "seccion": "1", "profesor": "Yañez", "horario": "MA JU 11:30 - 12:50"},
-    {"nombre": "Fund. Económicos", "seccion": "2", "profesor": "Muñoz", "horario": "MA JU 17:25 - 18:45"},
-    {"nombre": "Recursos Humanos", "seccion": "1", "profesor": "Toledo", "horario": "LU MI 13:00 - 14:20"},
 ]
 
 inicializar_estado()
