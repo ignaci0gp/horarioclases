@@ -70,7 +70,7 @@ cols = st.columns(3)
 
 for i, curso in enumerate(cursos):
     col = cols[i % 3]
-   tarjeta = f\"\"\"
+    tarjeta = f\"\"\"
 **{curso['nombre']}**
 Sección {curso['seccion']}
 \"\"\"
