@@ -1,77 +1,110 @@
+
 import streamlit as st
-import pandas as pd
-import json
-from datetime import datetime, timedelta
+from datetime import datetime
 
-# Constantes
+# Diccionarios de utilidad
 DIAS = ["LU", "MA", "MI", "JU", "VI"]
-BLOQUES_HORARIOS = [
-    "08:30 - 09:50", "10:00 - 11:20", "11:30 - 12:50",
-    "13:00 - 14:20", "14:30 - 15:50", "16:00 - 17:20", "17:25 - 18:45"
+DIA_COLUMNAS = {"LU": 0, "MA": 1, "MI": 2, "JU": 3, "VI": 4}
+BLOQUES = ["08:30 - 09:50", "10:00 - 11:20", "11:30 - 12:50", "13:00 - 14:20",
+           "14:30 - 15:50", "16:00 - 17:20", "17:25 - 18:45"]
+HORARIO = [[None for _ in range(5)] for _ in range(len(BLOQUES))]
+
+# Cursos predefinidos
+CURSOS = [
+    {
+        "nombre": "Fund. Económicos de la Org.",
+        "seccion": "1",
+        "catedra": "MA JU 16:00 - 17:20",
+        "ayudantia": "VI 16:00 - 17:20",
+        "profesor": "Muñoz",
+        "paquete": "ICO09411_V01"
+    },
+    {
+        "nombre": "Fund. Económicos de la Org.",
+        "seccion": "2",
+        "catedra": "MA JU 17:25 - 18:45",
+        "ayudantia": "VI 16:00 - 17:20",
+        "profesor": "Muñoz",
+        "paquete": "ICO09411_V02"
+    },
+    {
+        "nombre": "Finanzas II",
+        "seccion": "1",
+        "catedra": "MA JU 11:30 - 12:50",
+        "ayudantia": "VI 08:30 - 09:50",
+        "profesor": "Yañez",
+        "paquete": "ICO09412_V01"
+    },
+    {
+        "nombre": "Finanzas II",
+        "seccion": "2",
+        "catedra": "MA JU 10:00 - 11:20",
+        "ayudantia": "VI 08:30 - 09:50",
+        "profesor": "Rantul",
+        "paquete": "ICO09412_V02"
+    },
+    {
+        "nombre": "Recursos Humanos",
+        "seccion": "1",
+        "catedra": "LU MI 13:00 - 14:20",
+        "ayudantia": "VI 13:00 - 14:20",
+        "profesor": "Toledo",
+        "paquete": "ICO09413_V01"
+    },
+    {
+        "nombre": "Taller Emprendimiento",
+        "seccion": "1",
+        "catedra": "MA 13:00 - 15:50",
+        "ayudantia": "No hay",
+        "profesor": "Fernandez",
+        "paquete": "ICO09414_V01"
+    },
+    {
+        "nombre": "Taller Emprendimiento",
+        "seccion": "2",
+        "catedra": "MA 13:00 - 15:50",
+        "ayudantia": "No hay",
+        "profesor": "Muena",
+        "paquete": "ICO09414_V02"
+    },
 ]
-DIA_BLOQUES = {h: i for i, h in enumerate(BLOQUES_HORARIOS)}
 
-# Función para dividir rangos largos en tramos de 1h20m
-def dividir_bloque_largo(inicio, fin):
-    fmt = "%H:%M"
-    inicio_dt = datetime.strptime(inicio, fmt)
-    fin_dt = datetime.strptime(fin, fmt)
-    bloques = []
-    actual = inicio_dt
-    while actual + timedelta(minutes=80) <= fin_dt:
-        bloque_inicio = actual.strftime(fmt)
-        bloque_fin = (actual + timedelta(minutes=80)).strftime(fmt)
-        bloques.append(f"{bloque_inicio} - {bloque_fin}")
-        actual += timedelta(minutes=90)
-    return bloques
-
-# Extrae los bloques horarios desde un string tipo "MA JU 11:30 - 12:50"
-def extraer_bloques(cadena):
-    if cadena.strip().lower() == "no hay":
-        return []
-    partes = cadena.split()
-    dias = [p for p in partes if p in DIAS]
-    hora_inicio, _, hora_fin = partes[-3:]
-    bloques = dividir_bloque_largo(hora_inicio, hora_fin)
-    return [[dia, DIA_BLOQUES[b]] for dia in dias for b in bloques]
-
-# Cargar cursos
-with open("cursos.json", "r", encoding="utf-8") as f:
-    cursos = json.load(f)
-
+# Streamlit layout
 st.set_page_config(layout="wide")
-st.markdown("# 📅 Planificador de Horarios Universitarios")
-
-# Sesión
-if "seleccionados" not in st.session_state:
-    st.session_state.seleccionados = []
+st.title("📅 Planificador de Horarios Universitarios")
 
 col1, col2 = st.columns([1, 3])
-
 with col1:
-    st.subheader("📚 Cursos Disponibles")
-    for i, curso in enumerate(cursos):
-        nombre = f"{curso['nombre']} - {curso['seccion']}"
-        if any(c["paquete"] == curso["paquete"] for c in st.session_state.seleccionados):
-            st.button(nombre, key=f"{i}_disabled", disabled=True)
-        elif st.button(nombre, key=i):
-            st.session_state.seleccionados.append(curso)
+    st.header("Cursos Disponibles")
+    for idx, curso in enumerate(CURSOS):
+        if st.button(f"{curso['nombre']} - Sección {curso['seccion']}", key=idx):
+            st.session_state.selected = st.session_state.get("selected", [])
+            ya_existe = any(c["nombre"] == curso["nombre"] for c in st.session_state.selected)
+            if not ya_existe:
+                st.session_state.selected.append(curso)
+            else:
+                st.warning("Ya agregaste otra sección de este curso.")
 
 with col2:
-    st.subheader("🗓️ Horario")
-    data = [["" for _ in DIAS] for _ in BLOQUES_HORARIOS]
-    df = pd.DataFrame(data, columns=DIAS, index=BLOQUES_HORARIOS)
+    st.header("Horario")
+    data = [["" for _ in range(5)] for _ in range(len(BLOQUES))]
+    if "selected" in st.session_state:
+        for curso in st.session_state.selected:
+            bloques = [curso["catedra"], curso["ayudantia"]]
+            for b in bloques:
+                if b == "No hay": continue
+                dias, hora_ini, _, hora_fin = b.split()
+                for dia in dias.split():
+                    if dia not in DIA_COLUMNAS: continue
+                    col = DIA_COLUMNAS[dia]
+                    try:
+                        fila = BLOQUES.index(f"{hora_ini} - {hora_fin}")
+                        data[fila][col] = curso["nombre"]
+                    except:
+                        pass
+    st.dataframe(data, column_order=DIAS, use_container_width=True, hide_index=True)
 
-    for curso in st.session_state.seleccionados:
-        bloques_catedra = extraer_bloques(curso["catedra"])
-        bloques_ayudantia = extraer_bloques(curso["ayudantia"])
-        for dia, bloque in bloques_catedra:
-            df.at[BLOQUES_HORARIOS[bloque], dia] = curso["nombre"]
-        for dia, bloque in bloques_ayudantia:
-            df.at[BLOQUES_HORARIOS[bloque], dia] = f"Ayudantía {curso['nombre']}"
-
-    st.dataframe(df, use_container_width=True)
-
-st.markdown("## 🧾 Cursos Seleccionados")
-for i, curso in enumerate(st.session_state.seleccionados, 1):
-    st.markdown(f"**{i}. {curso['nombre']} - {curso['seccion']}** — {curso['profesor']} — *{curso['paquete']}*")
+st.markdown("### Cursos Seleccionados")
+if "selected" in st.session_state:
+    for i, curso in enumerate(st.session_state.selected, 1):
+        st.markdown(f"**{i}. {curso['nombre']} - Sección {curso['seccion']}** — {curso['profesor']}")
