@@ -105,4 +105,4 @@ if st.session_state.seleccionados:
         st.session_state.seleccionados.remove(quitar)
         st.success("Curso eliminado del horario.")
 
-fix: corregido error de f-string multilínea
+
