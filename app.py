@@ -74,15 +74,12 @@ opciones = [f"{c['nombre']} - Sección {c['seccion']}" for c in cursos]
 curso_str = st.selectbox("Selecciona un curso:", opciones)
 curso = next(c for c in cursos if f"{c['nombre']} - Sección {c['seccion']}" == curso_str)
 
-st.markdown(
-    f"**Código:** {curso['codigo']}  
-"
-    f"**Profesor:** {curso['profesor']}  
-"
-    f"**Cátedra:** {' | '.join(curso['catedra'])}  
-"
-    f"**Ayudantía:** {' | '.join(curso['ayudantia']) if curso['ayudantia'] else 'No tiene'}"
-)
+st.markdown(f"""
+**Código:** {curso['codigo']}  
+**Profesor:** {curso['profesor']}  
+**Cátedra:** {' | '.join(curso['catedra'])}  
+**Ayudantía:** {' | '.join(curso['ayudantia']) if curso['ayudantia'] else 'No tiene'}
+""")
 
 if st.button("➕ Agregar curso al horario"):
     bloques_nuevos = extraer_bloques(curso["catedra"] + curso["ayudantia"])
@@ -107,3 +104,5 @@ if st.session_state.seleccionados:
             st.session_state.horario[dia][bloque] = ""
         st.session_state.seleccionados.remove(quitar)
         st.success("Curso eliminado del horario.")
+
+fix: corregido error de f-string multilínea
