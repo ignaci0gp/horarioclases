@@ -1,5 +1,6 @@
 
 import streamlit as st
+import pandas as pd
 
 # ---------------------- Datos base ----------------------
 bloques = [
@@ -54,7 +55,7 @@ def hay_tope(horario, bloques_nuevos):
             return True
     return False
 
-def agregar_curso(horario, curso_id, curso):
+def agregar_curso(horario, curso):
     bloques_catedra = extraer_bloques(curso["catedra"])
     bloques_ayud = extraer_bloques(curso["ayudantia"])
     for dia, bloque in bloques_catedra + bloques_ayud:
@@ -69,22 +70,20 @@ if "horario" not in st.session_state:
 if "seleccionados" not in st.session_state:
     st.session_state.seleccionados = []
 
-# Selección de cursos
 opciones = [f"{c['nombre']} - Sección {c['seccion']}" for c in cursos]
 curso_str = st.selectbox("Selecciona un curso:", opciones)
-curso_idx = opciones.index(curso_str)
-curso = cursos[curso_idx]
+curso = next(c for c in cursos if f"{c['nombre']} - Sección {c['seccion']}" == curso_str)
 
-# Mostrar detalle del curso
-st.markdown(f"**Código:** {curso['codigo']}  
+st.markdown(
+    f"**Código:** {curso['codigo']}  
 "
-            f"**Profesor:** {curso['profesor']}  
+    f"**Profesor:** {curso['profesor']}  
 "
-            f"**Cátedra:** {' | '.join(curso['catedra'])}  
+    f"**Cátedra:** {' | '.join(curso['catedra'])}  
 "
-            f"**Ayudantía:** {' | '.join(curso['ayudantia']) if curso['ayudantia'] else 'No tiene'}")
+    f"**Ayudantía:** {' | '.join(curso['ayudantia']) if curso['ayudantia'] else 'No tiene'}"
+)
 
-# Agregar curso
 if st.button("➕ Agregar curso al horario"):
     bloques_nuevos = extraer_bloques(curso["catedra"] + curso["ayudantia"])
     if hay_tope(st.session_state.horario, bloques_nuevos):
@@ -92,24 +91,19 @@ if st.button("➕ Agregar curso al horario"):
     elif curso_str in st.session_state.seleccionados:
         st.warning("⚠️ Este curso ya fue agregado.")
     else:
-        st.session_state.horario = agregar_curso(st.session_state.horario, curso_str, curso)
+        st.session_state.horario = agregar_curso(st.session_state.horario, curso)
         st.session_state.seleccionados.append(curso_str)
         st.success("✅ Curso agregado al horario.")
 
-# Mostrar horario actual
 st.subheader("📅 Mi horario actual")
-st.markdown("<style>th, td {text-align: center !important;}</style>", unsafe_allow_html=True)
 df = pd.DataFrame(st.session_state.horario).T[bloques]
 st.dataframe(df.style.set_properties(**{"text-align": "center"}), height=360)
 
-# Quitar curso
 if st.session_state.seleccionados:
     quitar = st.selectbox("❌ Quitar curso:", st.session_state.seleccionados)
     if st.button("Eliminar curso del horario"):
-        # Limpiar bloques del curso
-        curso_quitar = [c for c in cursos if f"{c['nombre']} - Sección {c['seccion']}" == quitar][0]
-        bloques_quitar = extraer_bloques(curso_quitar["catedra"] + curso_quitar["ayudantia"])
-        for dia, bloque in bloques_quitar:
+        curso_quitar = next(c for c in cursos if f"{c['nombre']} - Sección {c['seccion']}" == quitar)
+        for dia, bloque in extraer_bloques(curso_quitar["catedra"] + curso_quitar["ayudantia"]):
             st.session_state.horario[dia][bloque] = ""
         st.session_state.seleccionados.remove(quitar)
         st.success("Curso eliminado del horario.")
