@@ -17,19 +17,19 @@ dias = ["LU", "MA", "MI", "JU", "VI"]
 # Base de cursos
 cursos = [
     {"codigo": "ICO09411", "nombre": "Fund. Económicos de la Org.", "seccion": "1",
-     "catedra": ["MA 16:00 - 17:20", "JU 16:00 - 17:20"],
+     "catedra": ["MA JU 16:00 - 17:20"],
      "ayudantia": ["VI 16:00 - 17:20"], "profesor": "MUÑOZ JUAN ANDRÉS"},
     {"codigo": "ICO09411", "nombre": "Fund. Económicos de la Org.", "seccion": "2",
-     "catedra": ["MA 17:25 - 18:45", "JU 17:25 - 18:45"],
+     "catedra": ["MA JU 17:25 - 18:45"],
      "ayudantia": ["VI 16:00 - 17:20"], "profesor": "MUÑOZ JUAN ANDRÉS"},
     {"codigo": "ICO09412", "nombre": "Finanzas II", "seccion": "1",
-     "catedra": ["MA 11:30 - 12:50", "JU 11:30 - 12:50"],
+     "catedra": ["MA JU 11:30 - 12:50"],
      "ayudantia": ["VI 08:30 - 09:50"], "profesor": "YAÑEZ GUILLERMO JOSE"},
     {"codigo": "ICO09412", "nombre": "Finanzas II", "seccion": "2",
-     "catedra": ["MA 10:00 - 11:20", "JU 10:00 - 11:20"],
+     "catedra": ["MA JU 10:00 - 11:20"],
      "ayudantia": ["VI 08:30 - 09:50"], "profesor": "RANTUL FRANCISCO OSIEL"},
     {"codigo": "ICO09413", "nombre": "Recursos Humanos", "seccion": "1",
-     "catedra": ["LU 13:00 - 14:20", "MI 13:00 - 14:20"],
+     "catedra": ["LU MI 13:00 - 14:20"],
      "ayudantia": ["VI 13:00 - 14:20"], "profesor": "TOLEDO MIGUEL APOLONIO"},
     {"codigo": "ICO09414", "nombre": "Taller Emprendimiento", "seccion": "1",
      "catedra": ["MA 13:00 - 15:50"], "ayudantia": [], "profesor": "FERNANDEZ ANDRES JOSE"},
@@ -44,9 +44,14 @@ def crear_horario_vacio():
 def extraer_bloques(horas):
     resultado = []
     for h in horas:
-        dia, tramo = h.split()
-        if tramo in bloques:
-            resultado.append((dia, tramo))
+        partes = h.strip().split()
+        if len(partes) >= 2:
+            horas_bloque = " ".join(partes[-2:])
+            dias_str = " ".join(partes[:-2])
+            dias_encontrados = dias_str.split()
+            for d in dias_encontrados:
+                if d in dias and horas_bloque in bloques:
+                    resultado.append((d, horas_bloque))
     return resultado
 
 def hay_tope(horario, bloques_nuevos):
@@ -104,5 +109,3 @@ if st.session_state.seleccionados:
             st.session_state.horario[dia][bloque] = ""
         st.session_state.seleccionados.remove(quitar)
         st.success("Curso eliminado del horario.")
-
-
